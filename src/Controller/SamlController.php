@@ -12,7 +12,7 @@ use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\Error;
 use Drupal\Core\Utility\Token;
-use OneLogin_Saml2_Utils;
+use OneLogin\Saml2\Utils;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -257,7 +257,7 @@ class SamlController extends ControllerBase {
       }
       // The SAML toolkit set a default RelayState to itself (saml/log(in|out))
       // when starting the process; ignore this value.
-      elseif (strpos($_REQUEST['RelayState'], OneLogin_Saml2_Utils::getSelfURLhost() . '/saml/') !== 0) {
+      elseif (strpos($_REQUEST['RelayState'], Utils::getSelfURLhost() . '/saml/') !== 0) {
         $url = $_REQUEST['RelayState'];
       }
     }

@@ -14,6 +14,6 @@
   },
   "require": {
     "drupal/externalauth": "^1.1",
-    "onelogin/php-saml": "^2.10.6"
+    "onelogin/php-saml": "^3"
   }
 }
