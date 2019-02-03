@@ -208,16 +208,17 @@ class SamlController extends ControllerBase {
    * Constructs a full URL from the 'destination' parameter.
    *
    * @return string|null
-   *   The full absolute URL (i.e. leading back to ourselves), or NULL if no
-   *   destination parameter was given. This value is tuned to what login() /
-   *   logout() expect for an input argument.
+   *   The full absolute URL (i.e. our hostname plus the path in the destination
+   *   parameter), or NULL if no destination parameter was given. This value is
+   *   tuned to what login() / logout() expect for an input argument.
    *
    * @throws \RuntimeException
    *   If the destination is disallowed.
    */
   protected function getUrlFromDestination() {
     $destination_url = NULL;
-    $destination = $this->requestStack->getCurrentRequest()->query->get('destination');
+    $request_query_parameters = $this->requestStack->getCurrentRequest()->query;
+    $destination = $request_query_parameters->get('destination');
     if ($destination) {
       if (UrlHelper::isExternal($destination)) {
         // Prevent authenticating and then redirecting somewhere else.
@@ -229,7 +230,16 @@ class SamlController extends ControllerBase {
       if (strpos($destination, '/') !== 0) {
         $destination = "/$destination";
       }
-      $destination_url = Url::fromUserInput($destination)->setAbsolute()->toString();
+      // toString(TRUE) will somehow tell Drupal we're taking care of
+      // 'cacheability metadata' ourselves, which is in the GeneratedUrl object
+      // that gets returned... and which we throw away because noone cares.
+      // Still, we have to do this because a LogicException would get thrown
+      // otherwise; see comments at createRedirectResponse().
+      $destination_url = Url::fromUserInput($destination)->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+      // After we return from this controller, Drupal immediately redirects to
+      // the path set in the 'destination' parameter - but we don't want that
+      // to happen until after login, so remove parameter,
+      $request_query_parameters->remove('destination');
     }
 
     return $destination_url;
@@ -299,10 +309,15 @@ class SamlController extends ControllerBase {
    */
   protected function createRedirectResponse($url) {
     if (is_object($url)) {
-      // If toString() is used without arguments, this influences requirements
-      // for passing cacheability metadata into the response object, which can
-      // lead to bugs (see #2630808 short description). We pass TRUE to get
-      // cacheability metadata passed back in a GeneratedUrl object instead.
+      // Converting a URL object to a string representation is apparently
+      // considered 'early rendering' by Drupal; we have to collect the
+      // 'cacheability metadata' and add it to the request along with the URL
+      // string. If we don't, a LogicException gets thrown later. (More info:
+      // #2630808 / #2638686 / https://www.lullabot.com/articles/early-rendering-a-lesson-in-debugging-drupal-8)
+      // toString(TRUE) will return a GeneratedUrl containing the metadata,
+      // and tell Drupal that we're handling the metadata ourselves (which will
+      // prevent the LogicException from being thrown, and also cancels the
+      // need to add it to the response even though we do that anyway below).
       $generated_url = $url->toString(TRUE);
       $url = $generated_url->getGeneratedUrl();
     }
