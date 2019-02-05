@@ -14,7 +14,6 @@ use Drupal\Core\Utility\Error;
 use Drupal\Core\Utility\Token;
 use OneLogin\Saml2\Utils;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -207,6 +206,10 @@ class SamlController extends ControllerBase {
   /**
    * Constructs a full URL from the 'destination' parameter.
    *
+   * This is only considered suitable for feeding into  php-saml's  login() /
+   * logout() methods (or anything that does not care about cache contexts)
+   * because we disregard cacheability metadata.
+   *
    * @return string|null
    *   The full absolute URL (i.e. our hostname plus the path in the destination
    *   parameter), or NULL if no destination parameter was given. This value is
@@ -230,15 +233,17 @@ class SamlController extends ControllerBase {
       if (strpos($destination, '/') !== 0) {
         $destination = "/$destination";
       }
-      // toString(TRUE) will somehow tell Drupal we're taking care of
-      // 'cacheability metadata' ourselves, which is in the GeneratedUrl object
-      // that gets returned... and which we throw away because noone cares.
-      // Still, we have to do this because a LogicException would get thrown
-      // otherwise; see comments at createRedirectResponse().
+      // toString(TRUE) will prevent 'leaking cacheability metadata into our
+      // render context'. (See comments at createRedirectResponse().) Instead,
+      // it will return the metadata to us... which we ignore because we're not
+      // rendering or caching anything; just providing whatever resulting URL
+      // to the SAML toolkit (so we get the exact same URL back after login;
+      // *then* we'll do something with it).
       $destination_url = Url::fromUserInput($destination)->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+
       // After we return from this controller, Drupal immediately redirects to
       // the path set in the 'destination' parameter - but we don't want that
-      // to happen until after login, so remove parameter,
+      // to happen until after login, so remove the parameter.
       $request_query_parameters->remove('destination');
     }
 
@@ -258,17 +263,18 @@ class SamlController extends ControllerBase {
    *   The URL to redirect to.
    */
   protected function getRedirectUrlAfterProcessing($logged_in = FALSE) {
-    if (isset($_REQUEST['RelayState'])) {
+    $relay_state = $this->requestStack->getCurrentRequest()->get('RelayState');
+    if ($relay_state) {
       // We should be able to trust the RelayState parameter at this point
       // because the response from the IDP was verified. Only validate general
       // syntax.
-      if (!UrlHelper::isValid($_REQUEST['RelayState'], TRUE)) {
-        $this->getLogger('samlauth')->error('Invalid RelayState parameter found in request: @relaystate', ['@relaystate' => $_REQUEST['RelayState']]);
+      if (!UrlHelper::isValid($relay_state, TRUE)) {
+        $this->getLogger('samlauth')->error('Invalid RelayState parameter found in request: @relaystate', ['@relaystate' => $relay_state]);
       }
       // The SAML toolkit set a default RelayState to itself (saml/log(in|out))
       // when starting the process; ignore this value.
-      elseif (strpos($_REQUEST['RelayState'], Utils::getSelfURLhost() . '/saml/') !== 0) {
-        $url = $_REQUEST['RelayState'];
+      elseif (strpos($relay_state, Utils::getSelfURLhost() . '/saml/') !== 0) {
+        $url = $relay_state;
       }
     }
 
@@ -309,15 +315,15 @@ class SamlController extends ControllerBase {
    */
   protected function createRedirectResponse($url) {
     if (is_object($url)) {
-      // Converting a URL object to a string representation is apparently
-      // considered 'early rendering' by Drupal; we have to collect the
-      // 'cacheability metadata' and add it to the request along with the URL
-      // string. If we don't, a LogicException gets thrown later. (More info:
-      // #2630808 / #2638686 / https://www.lullabot.com/articles/early-rendering-a-lesson-in-debugging-drupal-8)
-      // toString(TRUE) will return a GeneratedUrl containing the metadata,
-      // and tell Drupal that we're handling the metadata ourselves (which will
-      // prevent the LogicException from being thrown, and also cancels the
-      // need to add it to the response even though we do that anyway below).
+      // $url->toString() forces 'early rendering' which will make our
+      // controller's caller throw a LogicException mentioning "leaked
+      // metadata"*. We have to call toString(TRUE) to prevent this; this will
+      // return a GeneratedUrl object (instead of a string) containing
+      // 'cacheability metadata' which we'll need to handle ourselves.
+      // * Controller methods are executed in a 'render context', which causes
+      // $url->toString() to actually construct a render array, 'leaking'
+      // metadata into the render context. More info: #2630808 / #2638686 /
+      // https://www.lullabot.com/articles/early-rendering-a-lesson-in-debugging-drupal-8.
       $generated_url = $url->toString(TRUE);
       $url = $generated_url->getGeneratedUrl();
     }
@@ -344,17 +350,17 @@ class SamlController extends ControllerBase {
    */
   protected function handleException($exception, $while = '') {
     if ($while) {
-      $while = " $while";
+      $while = " while $while";
     }
     // We use the same format for logging as Drupal's ExceptionLoggingSubscriber
     // except we also specify where the error was encountered. (The options are
     // limited, so we make this part of the message, not a context parameter.)
     $error = Error::decodeException($exception);
     unset($error['severity_level']);
-    $this->getLogger('samlauth')->critical("%type encountered while $while: @message in %function (line %line of %file).", $error);
+    $this->getLogger('samlauth')->critical("%type encountered$while: @message in %function (line %line of %file).", $error);
     // Don't expose the error to prevent information leakage; the user probably
     // can't do much with it anyway. But hint that more details are available.
-    drupal_set_message("Error $while; details have been logged.", 'error');
+    drupal_set_message("Error encountered$while; details have been logged.", 'error');
   }
 
 }
