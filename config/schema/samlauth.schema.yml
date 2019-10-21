@@ -11,6 +11,18 @@ samlauth.authentication:
       type: string
     logout_redirect_url:
       type: string
+    map_users:
+      type: boolean
+
+samlauth.authsource.*:
+  type: config_entity
+  mapping:
+    id:
+      type: string
+    login_menu_item_title:
+      type: string
+    logout_menu_item_title:
+      type: string
     sp_entity_id:
       type: string
     sp_name_id_format:

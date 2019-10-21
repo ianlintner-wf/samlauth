@@ -1,0 +1,7 @@
+entity.authsource.add:
+  # Which route will be called by the link
+  route_name: entity.authsource.add_form
+  title: 'Add Authsource'
+  # Where will the link appear, defined by route name.
+  appears_on:
+    - entity.authsource.collection

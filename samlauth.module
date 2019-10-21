@@ -60,6 +60,10 @@ function samlauth_check_saml_user($form, FormStateInterface $form_state) {
 
 /**
  * Implements hook_user_presave().
+ *
+ * @param \Drupal\user\UserInterface $account
+ *
+ * @throws \Drupal\Core\Entity\EntityStorageException
  */
 function samlauth_user_presave(UserInterface $account) {
   // Hook into the user creation process from ExternalAuth::register() so that
@@ -67,13 +71,27 @@ function samlauth_user_presave(UserInterface $account) {
   // values into the new user object. The way externalauth prefixes account
   // names acts as a recursion stop, in case any called code (e.g. event) saves
   // the account.
-  if ($account->isNew() && strpos($account->getAccountName(), 'samlauth_') === 0) {
+  if ($account->isNew() && strpos(
+      $account->getAccountName(),
+      'samlauth_') === 0) {
     // Doublecheck that we're actually processing an ACS request, which we can
     // do by checking the request for presence of a user name attribute.
     /** @var \Drupal\samlauth\SamlService $saml_service */
     $saml_service = \Drupal::service('samlauth.saml');
-    if ($saml_service->getAttributeByConfig('user_name_attribute')) {
-      $saml_service->synchronizeUserAttributes($account, TRUE);
+    // Require an auth source
+    $auth_source_id = $account->get('field_saml_auth_source');
+    if (!($auth_source = saml_auth_get_auth_source())) {
+      $auth_source = $saml_service->getAuthSource(
+        $account->get('field_saml_auth_source'));
+    }
+    if (!empty($auth_source) && $saml_service->getAttributeByConfig(
+        'user_name_attribute',
+        $auth_source)) {
+      $saml_service->synchronizeUserAttributes($account, $auth_source);
     }
   }
+}
+
+function saml_auth_get_auth_source() {
+  return \Drupal::routeMatch()->getParameter('authsource');
 }

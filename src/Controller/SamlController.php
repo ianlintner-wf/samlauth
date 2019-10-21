@@ -2,6 +2,8 @@
 
 namespace Drupal\samlauth\Controller;
 
+use Drupal\Core\Render\Element\Link;
+use Drupal\samlauth\Entity\AuthSource;
 use Exception;
 use Drupal\samlauth\SamlService;
 use Drupal\Component\Utility\UrlHelper;
@@ -42,6 +44,7 @@ class SamlController extends ControllerBase {
    * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $config;
+
 
   /**
    * The PathValidator service.
@@ -102,9 +105,9 @@ class SamlController extends ControllerBase {
    * This should redirect to the Login service on the IDP and then to our ACS.
    * It does not actually log us in (yet).
    */
-  public function login() {
+  public function login($auth_source_id) {
     try {
-      $url = $this->saml->login($this->getUrlFromDestination());
+      $url = $this->saml->login($auth_source_id, $this->getUrlFromDestination());
     }
     catch (Exception $e) {
       $this->handleException($e, 'initiating SAML login');
@@ -120,9 +123,9 @@ class SamlController extends ControllerBase {
    * This should redirect to the SLS service on the IDP and then to our SLS.
    * It does not actually log us out (yet).
    */
-  public function logout() {
+  public function logout($auth_source_id) {
     try {
-      $url = $this->saml->logout($this->getUrlFromDestination());
+      $url = $this->saml->logout($auth_source_id, $this->getUrlFromDestination());
     }
     catch (Exception $e) {
       $this->handleException($e, 'initiating SAML logout');
@@ -137,9 +140,9 @@ class SamlController extends ControllerBase {
    *
    * @return \Symfony\Component\HttpFoundation\Response
    */
-  public function metadata() {
+  public function metadata($auth_source_id) {
     try {
-      $metadata = $this->saml->getMetadata();
+      $metadata = $this->saml->getMetadata($auth_source_id);
     }
     catch (Exception $e) {
       $this->handleException($e, 'processing SAML SP metadata');
@@ -149,6 +152,7 @@ class SamlController extends ControllerBase {
     return new Response($metadata, 200, ['Content-Type' => 'text/xml']);
   }
 
+
   /**
    * Attribute Consumer Service.
    *
@@ -157,10 +161,10 @@ class SamlController extends ControllerBase {
    *
    * @return \Drupal\Core\Routing\TrustedRedirectResponse
    */
-  public function acs() {
+  public function acs($auth_source_id) {
     try {
-      $this->saml->acs();
-      $url = $this->getRedirectUrlAfterProcessing(TRUE);
+      $this->saml->acs($auth_source_id);
+      $url = $this->getRedirectUrlAfterProcessing(TRUE, $this->saml->getAuthSource($auth_source_id));
     }
     catch (Exception $e) {
       $this->handleException($e, 'processing SAML authentication response');
@@ -178,11 +182,11 @@ class SamlController extends ControllerBase {
    *
    * @return \Drupal\Core\Routing\TrustedRedirectResponse
    */
-  public function sls() {
+  public function sls($auth_source_id) {
     try {
-      $url = $this->saml->sls();
+      $url = $this->saml->sls($auth_source_id);
       if (!$url) {
-        $url = $this->getRedirectUrlAfterProcessing();
+        $url = $this->getRedirectUrlAfterProcessing(FALSE, $this->saml->getAuthSource($auth_source_id));
       }
     }
     catch (Exception $e) {
@@ -198,8 +202,8 @@ class SamlController extends ControllerBase {
    *
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
    */
-  public function changepw() {
-    $url = $this->config->get('idp_change_password_service');
+  public function changepw(AuthSource $authSource) {
+    $url = $authSource->get('idp_change_password_service');
     return $this->createRedirectResponse($url);
   }
 
@@ -262,7 +266,7 @@ class SamlController extends ControllerBase {
    * @return \Drupal\Core\Url
    *   The URL to redirect to.
    */
-  protected function getRedirectUrlAfterProcessing($logged_in = FALSE) {
+  protected function getRedirectUrlAfterProcessing($logged_in = FALSE, AuthSource $authSource) {
     $relay_state = $this->requestStack->getCurrentRequest()->get('RelayState');
     if ($relay_state) {
       // We should be able to trust the RelayState parameter at this point
@@ -280,7 +284,7 @@ class SamlController extends ControllerBase {
 
     if (empty($url)) {
       // If no url was specified, we check if it was configured.
-      $url = $this->config->get($logged_in ? 'login_redirect_url' : 'logout_redirect_url');
+      $url = $authSource->get($logged_in ? 'login_redirect_url' : 'logout_redirect_url');
     }
 
     if ($url) {

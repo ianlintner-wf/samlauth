@@ -1,5 +1,5 @@
 samlauth.saml_controller_login:
-  path: '/saml/login'
+  path: '/saml/login/{auth_source}'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::login'
     _title: 'SAML Login'
@@ -7,8 +7,11 @@ samlauth.saml_controller_login:
     _role: 'anonymous'
   options:
     no_cache: TRUE
+    parameters:
+      auth_source:
+        type: 'authsource'
 samlauth.saml_controller_logout:
-  path: '/saml/logout'
+  path: '/saml/{auth_source}logout'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::logout'
     _title: 'SAML Logout'
@@ -16,15 +19,22 @@ samlauth.saml_controller_logout:
     _role: 'authenticated'
   options:
     no_cache: TRUE
+    parameters:
+      auth_source:
+        type: 'authsource'
 samlauth.saml_controller_metadata:
-  path: '/saml/metadata'
+  path: '/saml/metadata/{auth_source}'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::metadata'
     _title: 'SAML Metadata'
   requirements:
     _permission: 'view sp metadata'
+  options:
+    parameters:
+      auth_source:
+        type: 'authsource'
 samlauth.saml_controller_acs:
-  path: '/saml/acs'
+  path: '/saml/acs/{auth_source}'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::acs'
     _title: 'SAML ACS'
@@ -32,8 +42,11 @@ samlauth.saml_controller_acs:
     _role: 'anonymous'
   options:
     no_cache: TRUE
+    parameters:
+      auth_source:
+        type: 'authsource'
 samlauth.saml_controller_sls:
-  path: '/saml/sls'
+  path: '/saml/sls/{auth_source}'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::sls'
     _title: 'SAML SLS'
@@ -41,8 +54,11 @@ samlauth.saml_controller_sls:
     _role: 'authenticated'
   options:
     no_cache: TRUE
+    parameters:
+      auth_source:
+        type: 'authsource'
 samlauth.saml_controller_changepw:
-  path: '/saml/changepw'
+  path: '/saml/changepw/{auth_source}'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::changepw'
     _title: 'SAML Change Password'
@@ -50,6 +66,9 @@ samlauth.saml_controller_changepw:
     _role: 'authenticated'
   options:
     no_cache: TRUE
+    parameters:
+      auth_source:
+        type: 'authsource'
 samlauth.samlauth_configure_form:
   path: '/admin/config/people/saml'
   defaults:
@@ -57,4 +76,35 @@ samlauth.samlauth_configure_form:
     _title: 'SAML Authentication'
   requirements:
     _permission: 'configure saml'
+entity.authsource.collection:
+  path: '/admin/config/people/saml/authsource'
+  defaults:
+    _entity_list: 'authsource'
+    _title: 'SAML Authsources'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.authsource.add_form:
+  path: '/admin/config/people/saml/authsource/add'
+  defaults:
+    _entity_form: 'authsource.add'
+    _title: 'Add authsource'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.authsource.edit_form:
+  path: '/admin/config/people/saml/authsource/{authsource}'
+  defaults:
+    _entity_form: 'samlauth.authsource.edit'
+    _title: 'Edit authsource'
+  requirements:
+    _permission: 'administer site configuration'
+
+entity.authsource.delete_form:
+  path: '/admin/config/people/saml/authsource/{authsource}/delete'
+  defaults:
+    _entity_form: 'samlauth.authsource.delete'
+    _title: 'Delete authsource'
+  requirements:
+    _permission: 'administer site configuration'
 
