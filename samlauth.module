@@ -93,5 +93,5 @@ function samlauth_user_presave(UserInterface $account) {
 }
 
 function saml_auth_get_auth_source() {
-  return \Drupal::routeMatch()->getParameter('authsource');
+  return \Drupal::routeMatch()->getParameter('auth_source');
 }

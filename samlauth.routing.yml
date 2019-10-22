@@ -9,7 +9,7 @@ samlauth.saml_controller_login:
     no_cache: TRUE
     parameters:
       auth_source:
-        type: 'authsource'
+        type: 'auth_source'
 samlauth.saml_controller_logout:
   path: '/saml/{auth_source}logout'
   defaults:
@@ -21,7 +21,7 @@ samlauth.saml_controller_logout:
     no_cache: TRUE
     parameters:
       auth_source:
-        type: 'authsource'
+        type: 'auth_source'
 samlauth.saml_controller_metadata:
   path: '/saml/metadata/{auth_source}'
   defaults:
@@ -32,7 +32,7 @@ samlauth.saml_controller_metadata:
   options:
     parameters:
       auth_source:
-        type: 'authsource'
+        type: 'auth_source'
 samlauth.saml_controller_acs:
   path: '/saml/acs/{auth_source}'
   defaults:
@@ -44,7 +44,7 @@ samlauth.saml_controller_acs:
     no_cache: TRUE
     parameters:
       auth_source:
-        type: 'authsource'
+        type: 'auth_source'
 samlauth.saml_controller_sls:
   path: '/saml/sls/{auth_source}'
   defaults:
@@ -56,7 +56,7 @@ samlauth.saml_controller_sls:
     no_cache: TRUE
     parameters:
       auth_source:
-        type: 'authsource'
+        type: 'auth_source'
 samlauth.saml_controller_changepw:
   path: '/saml/changepw/{auth_source}'
   defaults:
@@ -68,7 +68,7 @@ samlauth.saml_controller_changepw:
     no_cache: TRUE
     parameters:
       auth_source:
-        type: 'authsource'
+        type: 'auth_source'
 samlauth.samlauth_configure_form:
   path: '/admin/config/people/saml'
   defaults:
@@ -80,7 +80,7 @@ entity.authsource.collection:
   path: '/admin/config/people/saml/authsource'
   defaults:
     _entity_list: 'authsource'
-    _title: 'SAML Authsources'
+    _title: 'SAML Authentication Sources'
   requirements:
     _permission: 'administer site configuration'
 
@@ -88,23 +88,24 @@ entity.authsource.add_form:
   path: '/admin/config/people/saml/authsource/add'
   defaults:
     _entity_form: 'authsource.add'
-    _title: 'Add authsource'
+    _title: 'Add SAML Authentication Source'
   requirements:
     _permission: 'administer site configuration'
 
 entity.authsource.edit_form:
   path: '/admin/config/people/saml/authsource/{authsource}'
   defaults:
-    _entity_form: 'samlauth.authsource.edit'
-    _title: 'Edit authsource'
+    _entity_form: 'authsource.edit'
+    _title: 'Edit SAML Authentication Source'
   requirements:
     _permission: 'administer site configuration'
 
 entity.authsource.delete_form:
   path: '/admin/config/people/saml/authsource/{authsource}/delete'
   defaults:
-    _entity_form: 'samlauth.authsource.delete'
-    _title: 'Delete authsource'
+    _entity_form: 'authsource.delete'
+    _title: 'Delete SAML Authentication Source'
   requirements:
     _permission: 'administer site configuration'
+
 

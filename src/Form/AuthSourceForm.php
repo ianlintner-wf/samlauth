@@ -5,7 +5,9 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
+use Drupal\samlauth\Entity\AuthSource;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -37,6 +39,7 @@ class AuthSourceForm extends EntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
+
     /***
      * @var \Drupal\samlauth\Entity\AuthSource $my_entity
      */
@@ -67,9 +70,9 @@ class AuthSourceForm extends EntityForm {
     $form['service_provider']['config_info'] = [
       '#theme' => 'item_list',
       '#items' => [
-        $this->t('Metadata URL') . ': ' . \Drupal::urlGenerator()->generateFromRoute('samlauth.saml_controller_metadata', [], ['absolute' => TRUE]),
-        $this->t('Assertion Consumer Service') . ': ' . Url::fromRoute('samlauth.saml_controller_acs', [], ['absolute' => TRUE])->toString(),
-        $this->t('Single Logout Service') . ': ' . Url::fromRoute('samlauth.saml_controller_sls', [], ['absolute' => TRUE])->toString(),
+        $this->t('Metadata URL') . ': ' . Url::fromRoute('samlauth.saml_controller_metadata', ['auth_source' => $my_entity->sp_entity_id ?? 'sp_entity_id'], ['absolute' => TRUE])->toString(),
+        $this->t('Assertion Consumer Service') . ': ' . Url::fromRoute('samlauth.saml_controller_acs', ['auth_source' => $my_entity->sp_entity_id ?? 'sp_entity_id'], ['absolute' => TRUE])->toString(),
+        $this->t('Single Logout Service') . ': ' . Url::fromRoute('samlauth.saml_controller_sls', ['auth_source' => $my_entity->sp_entity_id ?? 'sp_entity_id'], ['absolute' => TRUE])->toString(),
       ],
       '#empty' => [],
       '#list_type' => 'ul',
@@ -391,5 +394,6 @@ class AuthSourceForm extends EntityForm {
       ->execute();
     return (bool) $entity;
   }
+
 
 }

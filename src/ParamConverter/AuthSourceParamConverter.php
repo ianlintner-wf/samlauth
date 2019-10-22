@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\samlauth\AuthSourceParamConverter;
+namespace Drupal\samlauth\ParamConverter;
 
 use Drupal\Core\ParamConverter\ParamConverterInterface;
 use Drupal\samlauth\Entity\AuthSource;

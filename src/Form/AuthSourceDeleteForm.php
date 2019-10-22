@@ -1,12 +1,12 @@
 <?php
-namespace Drupal\AuthSource\Form;
+namespace Drupal\samlauth\Form;
 
 use Drupal\Core\Entity\EntityConfirmFormBase;
 use Drupal\Core\Url;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Builds the form to delete an lotus.
+ * Builds the form to delete an authsource.
  */
 class AuthSourceDeleteForm extends EntityConfirmFormBase {
 
@@ -41,7 +41,7 @@ class AuthSourceDeleteForm extends EntityConfirmFormBase {
     $this->entity->delete();
     drupal_set_message(
       $this->t(
-        'Category %label has been deleted.',
+        'Authsource %label has been deleted.',
         array('%label' => $this->entity->label())));
 
     $form_state->setRedirectUrl($this->getCancelUrl());
