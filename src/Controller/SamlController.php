@@ -140,9 +140,9 @@ class SamlController extends ControllerBase {
    *
    * @return \Symfony\Component\HttpFoundation\Response
    */
-  public function metadata($auth_source_id) {
+  public function metadata($auth_source) {
     try {
-      $metadata = $this->saml->getMetadata($auth_source_id);
+      $metadata = $this->saml->getMetadata($auth_source);
     }
     catch (Exception $e) {
       $this->handleException($e, 'processing SAML SP metadata');
