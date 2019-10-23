@@ -101,13 +101,16 @@ class SamlController extends ControllerBase {
 
   /**
    * Initiates a SAML2 authentication flow.
-   *
    * This should redirect to the Login service on the IDP and then to our ACS.
    * It does not actually log us in (yet).
+   *
+   * @param $auth_source
+   *
+   * @return \Drupal\Core\Routing\TrustedRedirectResponse
    */
-  public function login($auth_source_id) {
+  public function login($auth_source) {
     try {
-      $url = $this->saml->login($auth_source_id, $this->getUrlFromDestination());
+      $url = $this->saml->login($auth_source, $this->getUrlFromDestination());
     }
     catch (Exception $e) {
       $this->handleException($e, 'initiating SAML login');
@@ -123,9 +126,9 @@ class SamlController extends ControllerBase {
    * This should redirect to the SLS service on the IDP and then to our SLS.
    * It does not actually log us out (yet).
    */
-  public function logout($auth_source_id) {
+  public function logout($auth_source) {
     try {
-      $url = $this->saml->logout($auth_source_id, $this->getUrlFromDestination());
+      $url = $this->saml->logout($auth_source, $this->getUrlFromDestination());
     }
     catch (Exception $e) {
       $this->handleException($e, 'initiating SAML logout');
@@ -137,6 +140,8 @@ class SamlController extends ControllerBase {
 
   /**
    * Displays service provider metadata XML for iDP autoconfiguration.
+   *
+   * @param $auth_source
    *
    * @return \Symfony\Component\HttpFoundation\Response
    */
@@ -161,9 +166,9 @@ class SamlController extends ControllerBase {
    *
    * @return \Drupal\Core\Routing\TrustedRedirectResponse
    */
-  public function acs($auth_source_id) {
+  public function acs(AuthSource $auth_source) {
     try {
-      $this->saml->acs($auth_source_id);
+      $this->saml->acs($auth_source);
       $url = $this->getRedirectUrlAfterProcessing(TRUE, $this->saml->getAuthSource($auth_source_id));
     }
     catch (Exception $e) {
@@ -182,11 +187,11 @@ class SamlController extends ControllerBase {
    *
    * @return \Drupal\Core\Routing\TrustedRedirectResponse
    */
-  public function sls($auth_source_id) {
+  public function sls(AuthSource $auth_source) {
     try {
-      $url = $this->saml->sls($auth_source_id);
+      $url = $this->saml->sls($auth_source);
       if (!$url) {
-        $url = $this->getRedirectUrlAfterProcessing(FALSE, $this->saml->getAuthSource($auth_source_id));
+        $url = $this->getRedirectUrlAfterProcessing(FALSE, $auth_source);
       }
     }
     catch (Exception $e) {
@@ -202,7 +207,7 @@ class SamlController extends ControllerBase {
    *
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
    */
-  public function changepw(AuthSource $authSource) {
+  public function changepw(AuthSource $auth_source) {
     $url = $authSource->get('idp_change_password_service');
     return $this->createRedirectResponse($url);
   }
@@ -266,7 +271,7 @@ class SamlController extends ControllerBase {
    * @return \Drupal\Core\Url
    *   The URL to redirect to.
    */
-  protected function getRedirectUrlAfterProcessing($logged_in = FALSE, AuthSource $authSource) {
+  protected function getRedirectUrlAfterProcessing($logged_in = FALSE, AuthSource $auth_source) {
     $relay_state = $this->requestStack->getCurrentRequest()->get('RelayState');
     if ($relay_state) {
       // We should be able to trust the RelayState parameter at this point
@@ -284,7 +289,7 @@ class SamlController extends ControllerBase {
 
     if (empty($url)) {
       // If no url was specified, we check if it was configured.
-      $url = $authSource->get($logged_in ? 'login_redirect_url' : 'logout_redirect_url');
+      $url = $auth_source->get($logged_in ? 'login_redirect_url' : 'logout_redirect_url');
     }
 
     if ($url) {
