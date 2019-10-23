@@ -509,10 +509,10 @@ class SamlService {
         'entityId' => $authSource->get('sp_entity_id'),
         'assertionConsumerService' => [
           // See SamlController::redirectResponseFromUrl() for details.
-          'url' => Url::fromRoute('samlauth.saml_controller_acs', [$authSource->sp_entity_id], ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl(),
+          'url' => Url::fromRoute('samlauth.saml_controller_acs', ['auth_source' => $authSource->sp_entity_id], ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl(),
         ],
         'singleLogoutService' => [
-          'url' => Url::fromRoute('samlauth.saml_controller_sls', [$authSource->sp_entity_id], ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl(),
+          'url' => Url::fromRoute('samlauth.saml_controller_sls', ['auth_source' => $authSource->sp_entity_id], ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl(),
         ],
         'NameIDFormat' => $authSource->get('sp_name_id_format'),
         'x509cert' => $sp_cert,

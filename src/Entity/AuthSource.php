@@ -30,7 +30,7 @@ use Drupal\samlauth\AuthSourceInterface;
  *     "sp_cert_folder" = "sp_cert_folder",
  *     "sp_x509_certificate" = "sp_x509_certificate",
  *     "sp_private_key" = "sp_private_key",
- *     "idp_entity_id" = "idp_enity_id",
+ *     "idp_entity_id" = "idp_entity_id",
  *     "idp_single_sign_on_service" = "idp_single_sign_on_service",
  *     "idp_single_log_out_service" = "idp_single_log_out_service",
  *     "idp_change_password_service" = "idp_change_password_service",
