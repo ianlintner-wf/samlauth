@@ -1,5 +1,5 @@
 samlauth.saml_controller_login:
-  path: '/saml/login/{auth_source}'
+  path: '/saml/{auth_source}/login'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::login'
     _title: 'SAML Login'
@@ -11,7 +11,7 @@ samlauth.saml_controller_login:
       auth_source:
         type: 'auth_source'
 samlauth.saml_controller_logout:
-  path: '/saml/{auth_source}logout'
+  path: '/saml/{auth_source}/logout'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::logout'
     _title: 'SAML Logout'
@@ -23,7 +23,7 @@ samlauth.saml_controller_logout:
       auth_source:
         type: 'auth_source'
 samlauth.saml_controller_metadata:
-  path: '/saml/metadata/{auth_source}'
+  path: '/saml//{auth_source}/metadata'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::metadata'
     _title: 'SAML Metadata'
@@ -34,7 +34,7 @@ samlauth.saml_controller_metadata:
       auth_source:
         type: 'auth_source'
 samlauth.saml_controller_acs:
-  path: '/saml/acs/{auth_source}'
+  path: '/saml/{auth_source}/acs'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::acs'
     _title: 'SAML ACS'
@@ -46,7 +46,7 @@ samlauth.saml_controller_acs:
       auth_source:
         type: 'auth_source'
 samlauth.saml_controller_sls:
-  path: '/saml/sls/{auth_source}'
+  path: '/saml/{auth_source}/sls/'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::sls'
     _title: 'SAML SLS'
@@ -58,7 +58,7 @@ samlauth.saml_controller_sls:
       auth_source:
         type: 'auth_source'
 samlauth.saml_controller_changepw:
-  path: '/saml/changepw/{auth_source}'
+  path: '/saml/{auth_source}/changepw'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::changepw'
     _title: 'SAML Change Password'
