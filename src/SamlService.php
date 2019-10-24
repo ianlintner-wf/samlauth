@@ -548,6 +548,15 @@ class SamlService {
       'strict' => (bool) $authSource->get('strict'),
     ];
 
+    /***
+     * Protocol Binding Force
+     */
+    if (!empty($authSource->get('sp_acs_protocol_binding'))) {
+      $library_config['sp']['assertionConsumerService']['binding'] = $authSource->get('sp_acs_protocol_binding');
+    }
+    if (!empty($authSource->get('sp_slo_protocol_binding'))) {
+      $library_config['sp']['singleLogoutService']['binding'] = $authSource->get('sp_slo_protocol_binding');
+    }
     // Check for the presence of a multi cert situation.
     $multi = $authSource->get('idp_cert_type');
     switch ($multi) {

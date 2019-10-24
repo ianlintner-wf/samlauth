@@ -92,6 +92,20 @@ class AuthSourceForm extends EntityForm {
       '#default_value' => $my_entity->sp_name_id_format,
     ];
 
+    $form['service_provider']['sp_acs_protocol_binding'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('ACS SSO Protocol Binding'),
+      '#description' => $this->t('Binding protocol e.g. (urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST, urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect)'),
+      '#default_value' => $my_entity->sp_acs_protocol_binding,
+    ];
+
+    $form['service_provider']['sp_slo_protocol_binding'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('SLO Protocol Binding'),
+      '#description' => $this->t('Binding protocol e.g. (urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST, urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect)'),
+      '#default_value' => $my_entity->sp_slo_protocol_binding,
+    ];
+
     $cert_folder = $my_entity->sp_cert_folder;
     $sp_x509_certificate = $my_entity->sp_x509_certificate;
     $sp_private_key = $my_entity->sp_private_key;

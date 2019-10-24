@@ -27,6 +27,8 @@ use Drupal\samlauth\AuthSourceInterface;
  *     "login_menu_item_title" = "login_menu_item_title",
  *     "sp_entity_id" = "sp_entity_id",
  *     "sp_name_id_format" = "sp_name_id_format",
+ *     "sp_acs_protocol_binding" = "sp_acs_protocol_binding"
+ *     "sp_slo_protocol_binding" = "sp_slo_protocol_binding"
  *     "sp_cert_folder" = "sp_cert_folder",
  *     "sp_x509_certificate" = "sp_x509_certificate",
  *     "sp_private_key" = "sp_private_key",
@@ -80,6 +82,8 @@ class AuthSource extends ConfigEntityBase implements AuthSourceInterface {
   public $sp_cert_folder;
   public $sp_x509_certificate;
   public $sp_private_key;
+  public $sp_acs_protocol_binding;
+  public $sp_slo_protocol_binding;
   public $idp_entity_id;
   public $idp_single_sign_on_service;
   public $idp_single_log_out_service;

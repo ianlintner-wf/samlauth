@@ -27,6 +27,10 @@ samlauth.authsource.*:
       type: string
     sp_name_id_format:
       type: string
+    sp_acs_protocol_binding:
+      type: string
+    sp_slo_protocol_binding:
+      type: string
     sp_cert_folder:
       type: string
     sp_x509_certificate:
