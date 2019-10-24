@@ -23,7 +23,7 @@ samlauth.saml_controller_logout:
       auth_source:
         type: 'auth_source'
 samlauth.saml_controller_metadata:
-  path: '/saml//{auth_source}/metadata'
+  path: '/saml/{auth_source}/metadata'
   defaults:
     _controller: '\Drupal\samlauth\Controller\SamlController::metadata'
     _title: 'SAML Metadata'
