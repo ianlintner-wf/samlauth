@@ -169,7 +169,7 @@ class SamlController extends ControllerBase {
   public function acs(AuthSource $auth_source) {
     try {
       $this->saml->acs($auth_source);
-      $url = $this->getRedirectUrlAfterProcessing(TRUE, $auth_source);
+      $url = $this->getRedirectUrlAfterProcessing(TRUE);
     }
     catch (Exception $e) {
       $this->handleException($e, 'processing SAML authentication response');
@@ -191,7 +191,7 @@ class SamlController extends ControllerBase {
     try {
       $url = $this->saml->sls($auth_source);
       if (!$url) {
-        $url = $this->getRedirectUrlAfterProcessing(FALSE, $auth_source);
+        $url = $this->getRedirectUrlAfterProcessing(FALSE);
       }
     }
     catch (Exception $e) {
@@ -271,7 +271,7 @@ class SamlController extends ControllerBase {
    * @return \Drupal\Core\Url
    *   The URL to redirect to.
    */
-  protected function getRedirectUrlAfterProcessing($logged_in = FALSE, AuthSource $auth_source) {
+  protected function getRedirectUrlAfterProcessing($logged_in = FALSE) {
     $relay_state = $this->requestStack->getCurrentRequest()->get('RelayState');
     if ($relay_state) {
       // We should be able to trust the RelayState parameter at this point
@@ -289,7 +289,7 @@ class SamlController extends ControllerBase {
 
     if (empty($url)) {
       // If no url was specified, we check if it was configured.
-      $url = $auth_source->get($logged_in ? 'login_redirect_url' : 'logout_redirect_url');
+      $url = $this->config->get($logged_in ? 'login_redirect_url' : 'logout_redirect_url');
     }
 
     if ($url) {
