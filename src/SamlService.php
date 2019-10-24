@@ -84,32 +84,34 @@ class SamlService {
   /**
    * Constructor for Drupal\samlauth\SamlService.
    *
-   * @param \Drupal\externalauth\ExternalAuth $external_auth
+   * @param \Drupal\externalauth\ExternalAuth                           $external_auth
    *   The ExternalAuth service.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface                  $config_factory
    *   The config factory.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface              $entity_type_manager
    *   The EntityTypeManager service.
-   * @param \Psr\Log\LoggerInterface $logger
+   * @param \Psr\Log\LoggerInterface                                    $logger
    *   A logger instance.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
-   * @param \Drupal\user\PrivateTempStoreFactory $temp_store_factory
+   * @param \Drupal\user\PrivateTempStoreFactory                        $temp_store_factory
    *   A temp data store factory object.
    */
   public function __construct(ExternalAuth $external_auth, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, LoggerInterface $logger, EventDispatcherInterface $event_dispatcher, PrivateTempStoreFactory $temp_store_factory) {
-    $this->externalAuth = $external_auth;
-    $this->config = $config_factory->get('samlauth.authentication');
-    $this->entityTypeManager = $entity_type_manager;
-    $this->logger = $logger;
-    $this->eventDispatcher = $event_dispatcher;
-    $this->privateTempStore = $temp_store_factory->get('samlauth');
-    $this->authSourcesStorage =  $this->entityTypeManager->getStorage('authsource');
-    $this->authSources = [];
+    $this->externalAuth       = $external_auth;
+    $this->config             = $config_factory->get('samlauth.authentication');
+    $this->entityTypeManager  = $entity_type_manager;
+    $this->logger             = $logger;
+    $this->eventDispatcher    = $event_dispatcher;
+    $this->privateTempStore   = $temp_store_factory->get('samlauth');
+    $this->authSourcesStorage = $this->entityTypeManager->getStorage(
+      'authsource');
+    $this->authSources        = [];
   }
 
   /***
    * Get Auth Source
+   *
    * @param $id
    *
    * @return bool|mixed
@@ -130,13 +132,15 @@ class SamlService {
   public function getMetadata(AuthSource $auth_source) {
     $settings = $this->getSamlAuth($auth_source)->getSettings();
     $metadata = $settings->getSPMetadata();
-    $errors = $settings->validateMetadata($metadata);
+    $errors   = $settings->validateMetadata($metadata);
 
     if (empty($errors)) {
       return $metadata;
     }
     else {
-      throw new RuntimeException('Invalid SP metadata: ' . implode(', ', $errors), Error::METADATA_SP_INVALID);
+      throw new RuntimeException(
+        'Invalid SP metadata: ' . implode(', ', $errors),
+        Error::METADATA_SP_INVALID);
     }
   }
 
@@ -152,8 +156,13 @@ class SamlService {
    *   The URL of the single sign-on service to redirect to, including query
    *   parameters.
    */
-  public function login(AuthSource $auth_source, $return_to = null) {
-    return $this->getSamlAuth($auth_source)->login($return_to, [], FALSE, FALSE, TRUE);
+  public function login(AuthSource $auth_source, $return_to = NULL) {
+    return $this->getSamlAuth($auth_source)->login(
+      $return_to,
+      [],
+      FALSE,
+      FALSE,
+      TRUE);
   }
 
   /**
@@ -168,16 +177,16 @@ class SamlService {
    *   The URL of the single logout service to redirect to, including query
    *   parameters.
    */
-  public function logout(AuthSource $auth_source, $return_to = null) {
+  public function logout(AuthSource $auth_source, $return_to = NULL) {
 
-      return $this->getSamlAuth($auth_source)->logout(
-        $return_to,
-        [],
-        $this->privateTempStore->get('name_id'),
-        $this->privateTempStore->get('session_index'),
-        TRUE,
-        $this->privateTempStore->get('name_id_format')
-      );
+    return $this->getSamlAuth($auth_source)->logout(
+      $return_to,
+      [],
+      $this->privateTempStore->get('name_id'),
+      $this->privateTempStore->get('session_index'),
+      TRUE,
+      $this->privateTempStore->get('name_id_format')
+    );
   }
 
   /**
@@ -198,9 +207,9 @@ class SamlService {
     // This call can either set an error condition or throw a
     // \OneLogin_Saml2_Error exception, depending on whether or not we are
     // processing a POST request. Don't catch the exception.
-    $this->getSamlAuth($authsource)->processResponse();
+    $this->getSamlAuth($auth_source)->processResponse();
     // Now look if there were any errors and also throw.
-    $errors = $this->getSamlAuth($authsource)->getErrors();
+    $errors = $this->getSamlAuth($auth_source)->getErrors();
     if (!empty($errors)) {
       // We have one or multiple error types / short descriptions, and one
       // 'reason' for the last error.
@@ -208,137 +217,135 @@ class SamlService {
         'Error(s) encountered during processing of ACS response. Type(s): ' . implode(
           ', ',
           array_unique(
-            $errors)) . '; reason given for last error: ' . $this->getSamlAuth()
+            $errors)) . '; reason given for last error: ' . $this->getSamlAuth(
+          $auth_source)
           ->getLastErrorReason());
     }
 
-    if ($authsource = $this->getAuthSource($auth_source_id)) {
-      assert($authsource instanceof AuthSource);
 
-      if (!$this->isAuthenticated()) {
-        throw new RuntimeException('Could not authenticate.');
-      }
+    if (!$this->isAuthenticated($auth_source)) {
+      throw new RuntimeException('Could not authenticate.');
+    }
 
-      $unique_id = $this->getAttributeByConfig('unique_id_attribute');
-      if (!$unique_id) {
-        throw new RuntimeException(
-          'Configured unique ID is not present in SAML response.');
-      }
+    $unique_id = $this->getAttributeByConfig('unique_id_attribute');
+    if (!$unique_id) {
+      throw new RuntimeException(
+        'Configured unique ID is not present in SAML response.');
+    }
 
 
-      $account = $this->externalAuth->load($unique_id, 'samlauth');
+    $account = $this->externalAuth->load($unique_id, 'samlauth');
 
-      if (!$account) {
-        $this->logger->debug(
-          'No matching local users found for unique SAML ID @saml_id.',
-          ['@saml_id' => $unique_id]);
+    if (!$account) {
+      $this->logger->debug(
+        'No matching local users found for unique SAML ID @saml_id.',
+        ['@saml_id' => $unique_id]);
 
-        // Try to link an existing user: first through a custom event handler,
-        // then by name, then by e-mail.
-        if ($authsource->get('map_users')) {
-          $event = new SamlauthUserLinkEvent($this->getAttributes($authsource));
-          $this->eventDispatcher->dispatch(SamlauthEvents::USER_LINK, $event);
-          $account = $event->getLinkedAccount();
-          if (!$account) {
-            // The linking by name / e-mail cannot be bypassed at this point
-            // because it makes no sense to create a new account from the SAML
-            // attributes if one of these two basic properties is already in use.
-            // (In this case a newly created and logged-in account would get a
-            // cryptic machine name because  synchronizeUserAttributes() cannot
-            // assign the proper name while saving.)
-            $name = $this->getAttributeByConfig('user_name_attribute');
-            if ($name && $account_search = $this->entityTypeManager->getStorage(
-                'user')->loadByProperties(['name' => $name])) {
+      // Try to link an existing user: first through a custom event handler,
+      // then by name, then by e-mail.
+      if ($auth_source->get('map_users')) {
+        $event = new SamlauthUserLinkEvent($this->getAttributes($auth_source));
+        $this->eventDispatcher->dispatch(SamlauthEvents::USER_LINK, $event);
+        $account = $event->getLinkedAccount();
+        if (!$account) {
+          // The linking by name / e-mail cannot be bypassed at this point
+          // because it makes no sense to create a new account from the SAML
+          // attributes if one of these two basic properties is already in use.
+          // (In this case a newly created and logged-in account would get a
+          // cryptic machine name because  synchronizeUserAttributes() cannot
+          // assign the proper name while saving.)
+          $name = $this->getAttributeByConfig('user_name_attribute');
+          if ($name && $account_search = $this->entityTypeManager->getStorage(
+              'user')->loadByProperties(['name' => $name])) {
+            $account = reset($account_search);
+            $this->logger->info(
+              'Matching local user @uid found for name @name (as provided in a SAML attribute); associating user and logging in.',
+              ['@name' => $name, '@uid' => $account->id()]);
+          }
+          else {
+            $mail = $this->getAttributeByConfig('user_mail_attribute');
+            if ($mail && $account_search = $this->entityTypeManager->getStorage(
+                'user')->loadByProperties(['mail' => $mail])) {
               $account = reset($account_search);
               $this->logger->info(
-                'Matching local user @uid found for name @name (as provided in a SAML attribute); associating user and logging in.',
-                ['@name' => $name, '@uid' => $account->id()]);
-            }
-            else {
-              $mail = $this->getAttributeByConfig('user_mail_attribute');
-              if ($mail && $account_search = $this->entityTypeManager->getStorage(
-                  'user')->loadByProperties(['mail' => $mail])) {
-                $account = reset($account_search);
-                $this->logger->info(
-                  'Matching local user @uid found for e-mail @mail (as provided in a SAML attribute); associating user and logging in.',
-                  ['@mail' => $mail, '@uid' => $account->id()]);
-              }
+                'Matching local user @uid found for e-mail @mail (as provided in a SAML attribute); associating user and logging in.',
+                ['@mail' => $mail, '@uid' => $account->id()]);
             }
           }
         }
-
-        if ($account) {
-          // There is a chance that the following call will not actually link the
-          // account (if a mapping to this account already exists from another
-          // unique ID). If that happens, it does not matter much to us; we will
-          // just log the account in anyway. Next time the same not-yet-linked
-          // user logs in, we will again try to link the account in the same way
-          // and (falsely) log that we are associating the user.
-          $this->externalAuth->linkExistingAccount(
-            $unique_id,
-            'samlauth',
-            $account);
-        }
       }
 
-      // If we haven't found an account to link, create one from the SAML
-      // attributes.
-      if (!$account) {
-        if ($authsource->get('create_users')) {
-          // The register() call will save the account. We want to:
-          // - add values from the SAML response into the user account;
-          // - not save the account twice (because if the second save fails we do
-          //   not want to end up with a user account in an undetermined state);
-          // - reuse code (i.e. call synchronizeUserAttributes() with its current
-          //   signature, which is also done when an existing user logs in).
-          // Because of the third point, we are not passing the necessary SAML
-          // attributes into register()'s $account_data parameter, but we want to
-          // hook into the save operation of the user account object that is
-          // created by register(). It seems we can only do this by implementing
-          // hook_user_presave() - which calls our synchronizeUserAttributes().
-          $account = $this->externalAuth->register($unique_id, 'samlauth');
+      if ($account) {
+        // There is a chance that the following call will not actually link the
+        // account (if a mapping to this account already exists from another
+        // unique ID). If that happens, it does not matter much to us; we will
+        // just log the account in anyway. Next time the same not-yet-linked
+        // user logs in, we will again try to link the account in the same way
+        // and (falsely) log that we are associating the user.
+        $this->externalAuth->linkExistingAccount(
+          $unique_id,
+          'samlauth',
+          $account);
+      }
+    }
 
-          $this->externalAuth->userLoginFinalize(
-            $account,
-            $unique_id,
-            'samlauth');
-        }
-        else {
-          throw new RuntimeException(
-            'No existing user account matches the SAML ID provided. This authentication service is not configured to create new accounts.');
-        }
-      }
-      elseif ($account->isBlocked()) {
-        throw new RuntimeException('Requested account is blocked.');
-      }
-      else {
-        // Synchronize the user account with SAML attributes if needed.
-        $this->synchronizeUserAttributes($account, $authsource);
+    // If we haven't found an account to link, create one from the SAML
+    // attributes.
+    if (!$account) {
+      if ($auth_source->get('create_users')) {
+        // The register() call will save the account. We want to:
+        // - add values from the SAML response into the user account;
+        // - not save the account twice (because if the second save fails we do
+        //   not want to end up with a user account in an undetermined state);
+        // - reuse code (i.e. call synchronizeUserAttributes() with its current
+        //   signature, which is also done when an existing user logs in).
+        // Because of the third point, we are not passing the necessary SAML
+        // attributes into register()'s $account_data parameter, but we want to
+        // hook into the save operation of the user account object that is
+        // created by register(). It seems we can only do this by implementing
+        // hook_user_presave() - which calls our synchronizeUserAttributes().
+        $account = $this->externalAuth->register($unique_id, 'samlauth');
 
         $this->externalAuth->userLoginFinalize(
           $account,
           $unique_id,
           'samlauth');
       }
-
-      // Set some request properties in local private storage. We can use these on
-      // logout.
-      foreach ([
-                 'session_index'      => $this->samlAuth->getSessionIndex(),
-                 'session_expiration' => $this->samlAuth->getSessionExpiration(),
-                 'name_id'            => $this->samlAuth->getNameId(),
-                 'name_id_format'     => $this->samlAuth->getNameIdFormat(),
-               ] as $key => $value
-      ) {
-        if (isset($value)) {
-          $this->privateTempStore->set($key, $value);
-        }
-        else {
-          $this->privateTempStore->delete($key);
-        }
+      else {
+        throw new RuntimeException(
+          'No existing user account matches the SAML ID provided. This authentication service is not configured to create new accounts.');
       }
     }
-  }
+    elseif ($account->isBlocked()) {
+      throw new RuntimeException('Requested account is blocked.');
+    }
+    else {
+      // Synchronize the user account with SAML attributes if needed.
+      $this->synchronizeUserAttributes($account, $auth_source);
+
+      $this->externalAuth->userLoginFinalize(
+        $account,
+        $unique_id,
+        'samlauth');
+    }
+
+    // Set some request properties in local private storage. We can use these on
+    // logout.
+    foreach ([
+               'session_index'      => $this->samlAuth->getSessionIndex(),
+               'session_expiration' => $this->samlAuth->getSessionExpiration(),
+               'name_id'            => $this->samlAuth->getNameId(),
+               'name_id_format'     => $this->samlAuth->getNameIdFormat(),
+             ] as $key => $value
+    ) {
+      if (isset($value)) {
+        $this->privateTempStore->set($key, $value);
+      }
+      else {
+        $this->privateTempStore->delete($key);
+      }
+    }
+}
 
 
 /**
@@ -430,14 +437,14 @@ class SamlService {
    * @param string                                  $config_key
    *   A key in the module's configuration, containing the name of a SAML
    *   attribute.
-   * @param \Drupal\samlauth\Entity\AuthSource|null $authsource
+   * @param \Drupal\samlauth\Entity\AuthSource|null $auth_source
    *
    * @return mixed|null
    *   The SAML attribute value; NULL if the attribute value, or configuration
    *   key, was not found.
    */
-  public function getAttributeByConfig($config_key, AuthSource $authsource) {
-    if ($authsource !== NULL) {
+  public function getAttributeByConfig($config_key, AuthSource $auth_source) {
+    if ($auth_source !== NULL) {
       $attribute_name = $this->authSource->get($config_key);
     }
     else {
@@ -445,7 +452,7 @@ class SamlService {
     }
 
     if ($attribute_name) {
-      $attribute = $this->getSamlAuth($authsource)->getAttribute($attribute_name);
+      $attribute = $this->getSamlAuth($auth_source)->getAttribute($attribute_name);
       if (!empty($attribute[0])) {
         return $attribute[0];
       }
@@ -454,23 +461,25 @@ class SamlService {
   }
 
   /**
+   * @param \Drupal\samlauth\Entity\AuthSource $auth_source
+   *
    * @return bool if a valid user was fetched from the saml assertion this request.
    */
-  protected function isAuthenticated(AuthSource $authSource) {
-    return $this->getSamlAuth($authSource)->isAuthenticated();
+  protected function isAuthenticated(AuthSource $auth_source) {
+    return $this->getSamlAuth($auth_source)->isAuthenticated();
   }
 
   /**
    * Returns an initialized Auth class from the SAML Toolkit.
    *
-   * @param string $authsource
+   * @param \Drupal\samlauth\Entity\AuthSource $auth_source
    *
    * @return \OneLogin\Saml2\Auth
    */
-  protected function getSamlAuth(AuthSource $authSource) {
+  protected function getSamlAuth(AuthSource $auth_source) {
     if (!isset($this->samlAuth)) {
 
-      $this->samlAuth = new Auth(static::reformatConfig($this->config, $authSource));
+      $this->samlAuth = new Auth(static::reformatConfig($this->config, $auth_source));
     }
 
     return $this->samlAuth;
