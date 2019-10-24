@@ -169,7 +169,7 @@ class SamlController extends ControllerBase {
   public function acs(AuthSource $auth_source) {
     try {
       $this->saml->acs($auth_source);
-      $url = $this->getRedirectUrlAfterProcessing(TRUE, $this->saml->getAuthSource($auth_source_id));
+      $url = $this->getRedirectUrlAfterProcessing(TRUE, $auth_source);
     }
     catch (Exception $e) {
       $this->handleException($e, 'processing SAML authentication response');

@@ -195,10 +195,11 @@ class SamlService {
    * Drupal user (logs in / maps existing / create new) depending on attributes
    * sent in the request and our module configuration.
    *
-   * @param string $auth_source_id
+   * @param \Drupal\samlauth\Entity\AuthSource $auth_source
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
    * @throws \Drupal\Core\TempStore\TempStoreException
    * @throws \Drupal\externalauth\Exception\ExternalAuthRegisterException
    */
