@@ -9,3 +9,13 @@ samlauth.saml_controller_logout.logout:
   menu_name: account
   enabled: 0
   class: Drupal\samlauth\Plugin\Menu\LoginLogoutMenuLink
+entity.authsource.collection:
+  title: 'SAML Authentication Sources'
+  parent: user.admin_index
+  description: 'SAML Authentication Sources Listing'
+  route_name: entity.authsource.collection
+entity.authsource.add:
+  title: 'Add SAML Authsources'
+  parent: entity.authsource.collection
+  description: 'Add a new SAML Authentication Source'
+  route_name: entity.authsource.add_form
