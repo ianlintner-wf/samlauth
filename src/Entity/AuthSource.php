@@ -27,8 +27,8 @@ use Drupal\samlauth\AuthSourceInterface;
  *     "login_menu_item_title" = "login_menu_item_title",
  *     "sp_entity_id" = "sp_entity_id",
  *     "sp_name_id_format" = "sp_name_id_format",
- *     "sp_acs_protocol_binding" = "sp_acs_protocol_binding"
- *     "sp_slo_protocol_binding" = "sp_slo_protocol_binding"
+ *     "sp_acs_protocol_binding" = "sp_acs_protocol_binding",
+ *     "sp_slo_protocol_binding" = "sp_slo_protocol_binding",
  *     "sp_cert_folder" = "sp_cert_folder",
  *     "sp_x509_certificate" = "sp_x509_certificate",
  *     "sp_private_key" = "sp_private_key",
@@ -78,32 +78,59 @@ class AuthSource extends ConfigEntityBase implements AuthSourceInterface {
   public $label;
 
   public $sp_entity_id;
+
   public $sp_name_id_format;
+
   public $sp_cert_folder;
+
   public $sp_x509_certificate;
+
   public $sp_private_key;
+
   public $sp_acs_protocol_binding;
+
   public $sp_slo_protocol_binding;
+
   public $idp_entity_id;
+
   public $idp_single_sign_on_service;
+
   public $idp_single_log_out_service;
+
   public $idp_change_password_service;
+
   public $idp_cert_type;
+
   public $idp_x509_certificate;
+
   public $idp_x509_certificate_multi;
+
   public $unique_id_attribute;
+
   public $map_users;
+
   public $create_users;
+
   public $sync_name;
+
   public $sync_mail;
+
   public $user_name_attribute;
+
   public $user_mail_attribute;
+
   public $strict;
+
   public $security_authn_requests_sign;
+
   public $security_logout_requests_sign;
+
   public $security_signature_algorithm;
+
   public $security_messages_sign;
+
   public $security_request_authn_context;
+
   public $security_lowercase_url_encoding;
 
   // Your specific configuration property get/set methods go here,
