@@ -203,7 +203,9 @@ class SamlService {
    * @throws \Drupal\externalauth\Exception\ExternalAuthRegisterException
    */
   public function acs(AuthSource $auth_source) {
-
+    if ($auth_source === NULL) {
+      throw new RuntimeException('Auth Source Not Found');
+    }
     // This call can either set an error condition or throw a
     // \OneLogin_Saml2_Error exception, depending on whether or not we are
     // processing a POST request. Don't catch the exception.
@@ -224,7 +226,7 @@ class SamlService {
 
 
     if (!$this->isAuthenticated($auth_source)) {
-      throw new RuntimeException('Could not authenticate.');
+      throw new RuntimeException('Could not authenticate for ' . $auth_source->idp_entity_id);
     }
 
     $unique_id = $this->getAttributeByConfig('unique_id_attribute', $auth_source);
@@ -445,16 +447,14 @@ class SamlService {
    */
   public function getAttributeByConfig($config_key, AuthSource $auth_source) {
     if ($auth_source !== NULL) {
-      $attribute_name = $this->authSource->get($config_key);
-    }
-    else {
-      $attribute_name = $this->config->get($config_key);
-    }
+      $attribute_name = $auth_source->get($config_key);
 
-    if ($attribute_name) {
-      $attribute = $this->getSamlAuth($auth_source)->getAttribute($attribute_name);
-      if (!empty($attribute[0])) {
-        return $attribute[0];
+      if ($attribute_name) {
+        $attribute = $this->getSamlAuth($auth_source)->getAttribute(
+          $attribute_name);
+        if (!empty($attribute[0])) {
+          return $attribute[0];
+        }
       }
     }
     return FALSE;
