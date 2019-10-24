@@ -86,7 +86,9 @@ function samlauth_user_presave(UserInterface $account) {
     }
     if (!empty($auth_source) && $saml_service->getAttributeByConfig(
         'user_name_attribute',
-        $auth_source)) {
+        $auth_source
+      )
+    ) {
       $saml_service->synchronizeUserAttributes($account, $auth_source);
     }
   }

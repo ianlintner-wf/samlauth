@@ -227,7 +227,7 @@ class SamlService {
       throw new RuntimeException('Could not authenticate.');
     }
 
-    $unique_id = $this->getAttributeByConfig('unique_id_attribute');
+    $unique_id = $this->getAttributeByConfig('unique_id_attribute', $auth_source);
     if (!$unique_id) {
       throw new RuntimeException(
         'Configured unique ID is not present in SAML response.');
@@ -254,7 +254,7 @@ class SamlService {
           // (In this case a newly created and logged-in account would get a
           // cryptic machine name because  synchronizeUserAttributes() cannot
           // assign the proper name while saving.)
-          $name = $this->getAttributeByConfig('user_name_attribute');
+          $name = $this->getAttributeByConfig('user_name_attribute', $auth_source);
           if ($name && $account_search = $this->entityTypeManager->getStorage(
               'user')->loadByProperties(['name' => $name])) {
             $account = reset($account_search);
@@ -263,7 +263,7 @@ class SamlService {
               ['@name' => $name, '@uid' => $account->id()]);
           }
           else {
-            $mail = $this->getAttributeByConfig('user_mail_attribute');
+            $mail = $this->getAttributeByConfig('user_mail_attribute', $auth_source);
             if ($mail && $account_search = $this->entityTypeManager->getStorage(
                 'user')->loadByProperties(['mail' => $mail])) {
               $account = reset($account_search);
