@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\TypedData\TypedDataManagerInterface;
+use Drupal\samlauth\Entity\AuthSource;
 use Drupal\samlauth\Event\SamlauthEvents;
 use Drupal\samlauth\Event\SamlauthUserSyncEvent;
 use Egulias\EmailValidator\EmailValidator;
@@ -150,7 +151,7 @@ class UserSyncEventSubscriber implements EventSubscriberInterface {
     }
 
     // Synchronize e-mail.
-    if ($account->isNew() || $this->config->get('sync_mail')) {
+    if ($account->isNew() || $event->getAuthSource()->get('sync_mail')) {
       $mail = $this->getAttributeByConfig('user_mail_attribute', $event);
       if ($mail) {
         if ($mail != $account->getEmail()) {
@@ -169,11 +170,24 @@ class UserSyncEventSubscriber implements EventSubscriberInterface {
           }
         }
       }
+      if ($account->hasField('field_saml_auth_source') && (
+          $account->get('field_saml_auth_source')->isEmpty() ||
+          $account->get('field_saml_auth_source')
+            ->getValue() !== $event->getAuthSource()->id())) {
+        $account->set(
+          'field_saml_auth_source',
+          $event->getAuthSource()->id());
+        $event->markAccountChanged();
+      }
+
+
       elseif ($account->isNew()) {
         // We won't allow new accounts with empty e-mail.
         $fatal_errors[] = t('Email address is not provided in SAML attribute.');
       }
     }
+
+
 
     if ($fatal_errors) {
       // Cancel the whole login process and/or account creation.
@@ -198,6 +212,9 @@ class UserSyncEventSubscriber implements EventSubscriberInterface {
   public function getAttributeByConfig($config_key, SamlauthUserSyncEvent $event) {
     $attributes = $event->getAttributes();
     $attribute_name = $this->config->get($config_key);
+    if (property_exists(AuthSource::class, $config_key)) {
+        $attribute_name = $event->getAuthSource()->get($config_key);
+    }
     return $attribute_name && !empty($attributes[$attribute_name][0]) ? $attributes[$attribute_name][0] : NULL;
   }
 

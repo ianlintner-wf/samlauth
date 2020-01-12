@@ -94,8 +94,11 @@ class SamlService {
    *   A logger instance.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
-   * @param \Drupal\user\PrivateTempStoreFactory                        $temp_store_factory
+   * @param \Drupal\Core\TempStore\PrivateTempStoreFactory              $temp_store_factory
    *   A temp data store factory object.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function __construct(ExternalAuth $external_auth, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, LoggerInterface $logger, EventDispatcherInterface $event_dispatcher, PrivateTempStoreFactory $temp_store_factory) {
     $this->externalAuth       = $external_auth;

@@ -76,13 +76,14 @@ function samlauth_user_presave(UserInterface $account) {
       'samlauth_') === 0) {
     // Doublecheck that we're actually processing an ACS request, which we can
     // do by checking the request for presence of a user name attribute.
-    /** @var \Drupal\samlauth\SamlService $saml_service */
     $saml_service = \Drupal::service('samlauth.saml');
     // Require an auth source
-    $auth_source_id = $account->get('field_saml_auth_source');
-    if (!($auth_source = saml_auth_get_auth_source())) {
+    if (assert($saml_service instanceof \Drupal\samlauth\SamlService) &&
+      !($auth_source = saml_auth_get_auth_source()) &&
+      !$account->get('field_saml_auth_source')->isEmpty()) {
       $auth_source = $saml_service->getAuthSource(
-        $account->get('field_saml_auth_source'));
+        $account->get('field_saml_auth_source')->getValue());
+      assert($auth_source instanceof \Drupal\samlauth\Entity\AuthSource);
     }
     if (!empty($auth_source) && $saml_service->getAttributeByConfig(
         'user_name_attribute',
@@ -94,6 +95,10 @@ function samlauth_user_presave(UserInterface $account) {
   }
 }
 
-function saml_auth_get_auth_source() {
+/***
+ *
+ * @return \Drupal\samlauth\Entity\AuthSource|null
+ */
+function saml_auth_get_auth_source(): ?\Drupal\samlauth\Entity\AuthSource {
   return \Drupal::routeMatch()->getParameter('auth_source');
 }
