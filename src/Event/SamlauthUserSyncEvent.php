@@ -2,6 +2,7 @@
 
 namespace Drupal\samlauth\Event;
 
+use Drupal\samlauth\Entity\AuthSource;
 use Drupal\user\UserInterface;
 use Symfony\Component\EventDispatcher\Event;
 
@@ -32,6 +33,11 @@ class SamlauthUserSyncEvent extends Event {
    * @var bool
    */
   protected $accountChanged;
+
+  /***
+   * @var AuthSource $authSource
+   */
+  protected $authSource;
 
   /**
    * Constructs a samlauth user sync event object.
@@ -118,6 +124,22 @@ class SamlauthUserSyncEvent extends Event {
    */
   public function isAccountChanged() {
     return $this->accountChanged;
+  }
+
+  /**
+   * @return \Drupal\samlauth\Entity\AuthSource
+   */
+  public function getAuthSource()
+  : \Drupal\samlauth\Entity\AuthSource {
+    return $this->authSource;
+  }
+
+  /**
+   * @param \Drupal\samlauth\Entity\AuthSource $authSource
+   */
+  public function setAuthSource(\Drupal\samlauth\Entity\AuthSource $authSource)
+  : void {
+    $this->authSource = $authSource;
   }
 
 }
