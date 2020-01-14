@@ -2,6 +2,7 @@
 
 namespace Drupal\samlauth\Event;
 
+use Drupal\samlauth\Entity\AuthSource;
 use Drupal\user\UserInterface;
 use Symfony\Component\EventDispatcher\Event;
 
@@ -26,14 +27,22 @@ class SamlauthUserLinkEvent extends Event {
    */
   protected $attributes;
 
+  /***
+   * @var AuthSource
+   */
+  protected $authSource;
+
   /**
    * Constructs a samlouth user link event object.
    *
-   * @param array $attributes
+   * @param array                              $attributes
    *   The SAML attributes received from the IDP.
+   * @param \Drupal\samlauth\Entity\AuthSource $authSource
    */
-  public function __construct(array $attributes) {
+  public function __construct(array $attributes, AuthSource $authSource) {
     $this->attributes = $attributes;
+    $this->setAuthSource($authSource);
+
   }
 
   /**
@@ -64,6 +73,22 @@ class SamlauthUserLinkEvent extends Event {
    */
   public function getAttributes() {
     return $this->attributes;
+  }
+
+  /**
+   * @return \Drupal\samlauth\Entity\AuthSource
+   */
+  public function getAuthSource()
+  : \Drupal\samlauth\Entity\AuthSource {
+    return $this->authSource;
+  }
+
+  /**
+   * @param \Drupal\samlauth\Entity\AuthSource $authSource
+   */
+  public function setAuthSource(\Drupal\samlauth\Entity\AuthSource $authSource)
+  : void {
+    $this->authSource = $authSource;
   }
 
 }

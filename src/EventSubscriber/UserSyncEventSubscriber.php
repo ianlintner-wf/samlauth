@@ -2,6 +2,7 @@
 
 namespace Drupal\samlauth\EventSubscriber;
 
+use Drupal\Component\Utility\EmailValidator;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -9,7 +10,7 @@ use Drupal\Core\TypedData\TypedDataManagerInterface;
 use Drupal\samlauth\Entity\AuthSource;
 use Drupal\samlauth\Event\SamlauthEvents;
 use Drupal\samlauth\Event\SamlauthUserSyncEvent;
-use Egulias\EmailValidator\EmailValidator;
+use Drupal\ultimate_cron\Logger\LoggerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -62,15 +63,15 @@ class UserSyncEventSubscriber implements EventSubscriberInterface {
   /**
    * Construct a new SamlauthUserSyncSubscriber.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface       $config_factory
    *   The config factory.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface   $entity_type_manager
    *   The EntityTypeManager service.
-   * @param \Egulias\EmailValidator\EmailValidator $email_validator
-   *   The email validator.
    * @param \Drupal\Core\TypedData\TypedDataManagerInterface $typed_data_manager
    *   The typed data manager.
-   * @param \Psr\Log\LoggerInterface $logger
+   * @param EmailValidator                                   $email_validator
+   *   The email validator.
+   * @param LoggerInterface $logger
    *   A logger instance.
    */
   public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, TypedDataManagerInterface $typed_data_manager, EmailValidator $email_validator, LoggerInterface $logger) {
@@ -94,6 +95,10 @@ class UserSyncEventSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\samlauth\Event\SamlauthUserSyncEvent $event
    *   The event.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\TypedData\Exception\ReadOnlyException
    */
   public function onUserSync(SamlauthUserSyncEvent $event) {
     // If the account is new, we are in the middle of a user save operation;

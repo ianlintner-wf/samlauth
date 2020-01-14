@@ -35,7 +35,7 @@ class SamlauthUserSyncEvent extends Event {
   protected $accountChanged;
 
   /***
-   * @var AuthSource $authSource
+   * @var AuthSource
    */
   protected $authSource;
 
@@ -47,9 +47,10 @@ class SamlauthUserSyncEvent extends Event {
    * @param array $attributes
    *   The SAML attributes received from the IDP.
    */
-  public function __construct(UserInterface $account, array $attributes) {
+  public function __construct(UserInterface $account, array $attributes, ?AuthSource $authSource = NULL) {
     $this->account = $account;
     $this->attributes = $attributes;
+    $this->setAuthSource($authSource);
   }
 
   /**

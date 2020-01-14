@@ -414,7 +414,7 @@ class SamlService {
    */
   public function synchronizeUserAttributes(UserInterface $account, AuthSource $auth_source,bool $skip_save = FALSE) {
     // Dispatch a user_sync event.
-    $event = new SamlauthUserSyncEvent($account, $this->getAttributes($auth_source));
+    $event = new SamlauthUserSyncEvent($account, $this->getAttributes($auth_source), $auth_source);
     $this->eventDispatcher->dispatch(SamlauthEvents::USER_SYNC, $event);
 
     if (!$skip_save && $event->isAccountChanged()) {
