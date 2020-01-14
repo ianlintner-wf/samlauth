@@ -10,7 +10,6 @@ use Drupal\Core\TypedData\TypedDataManagerInterface;
 use Drupal\samlauth\Entity\AuthSource;
 use Drupal\samlauth\Event\SamlauthEvents;
 use Drupal\samlauth\Event\SamlauthUserSyncEvent;
-use Drupal\ultimate_cron\Logger\LoggerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
